@@ -32,7 +32,7 @@ Test both even and odd length subranges.
       let numbers = [1, 2, 3, 4, 5].toListBuilder();
       reverse(numbers, 0, 3);
       reverse(numbers, 1, 5);
-      assertIntsEqual(test, numbers, [3, 5, 4, 1, 2]);
+      assertIntsEqual(test, numbers.toList(), [3, 5, 4, 1, 2]);
     }
 
 ## Test Helpers
