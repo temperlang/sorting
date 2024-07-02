@@ -4,7 +4,22 @@ Powersort is the [new default sorting algorithm in Python 3.11][python311]. It's
 a stable sorting algorithm with some good properties. Code here is based on the
 [reference implementation by Sebastian Wild][powersort].
 
-    export class Powersort<T> {
+## Simple Function
+
+If you just want simple stable sorting, using this.
+
+    export let powersort<T>(
+      items: ListBuilder<T>, compare: fn (T, T): Int
+    ): Void {
+      powersorter(compare).sort(items)
+    }
+
+## Class
+
+Using the class directly provides more options and allows for retaining a single
+buffer across multiple sorts.
+
+    export class Powersorter<T> {
 
 ## Compare
 
@@ -45,7 +60,7 @@ results in using the paper version of the algorithm. The relevant comment says,
 
 Meanwhile, code comments also say:
 
-> sorts [begin,end), assuming that [begin,leftRunEnd) and * [rightRunBegin,end)
+> sorts [begin,end), assuming that [begin,leftRunEnd) and [rightRunBegin,end)
 > are sorted
 
       powerSortPaper(items: ListBuilder<T>, begin: Int, end: Int): Void {
@@ -210,16 +225,16 @@ separate function.
 
 TODO Can we always apply manual type arguments for constructor calls in Java?
 
-    let sortWith<T>(
+    export let powersorter<T>(
       compare: fn (T, T): Int, minRunLength: Int = 24
-    ): Powersort<T> {
-      new Powersort(compare, minRunLength)
+    ): Powersorter<T> {
+      new Powersorter(compare, minRunLength)
     }
 
     test("sort") { (test);;
       let ints = [4, 5, 1, 2, 3].toListBuilder();
       let sorted = [1, 2, 3, 4, 5];
-      sortWith(
+      powersorter(
         compare = fn (a: Int, b: Int) { a - b },
 
 Keep `minRunLength` short for testing so we don't `insertionSort` everything.
