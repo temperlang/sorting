@@ -44,15 +44,21 @@ Meanwhile, code comments also say:
 > sorts [begin,end), assuming that [begin,leftRunEnd) and * [rightRunBegin,end)
 > are sorted
 
-      powerSortPaper(items: Listed<T>, begin: Int, end: Int): Void {
+      powerSortPaper(items: ListBuilder<T>, begin: Int, end: Int): Void {
         let length = end - begin;
         let maxStackHeight = floorLog2(length) + 1;
 
 And in the reference implementation, they can allocate the stack array on the
 call stack, but we can't do that here.
 
-        let stack = new ListBuilder<RunBeginNPower>();
-        fill(stack, maxStackHeight, new RunBeginNPower());
+        let stack = new ListBuilder<RunBeginPower>();
+        fill(stack, maxStackHeight, new RunBeginPower());
+        var top = 0;
+
+        let runA = new RunPower(
+          begin, extendAndReverseRunEnd(items, begin, end, compare), 0
+        );
+        // TODO Pick up here.
       }
 
       let buffer: ListBuilder<T> = new ListBuilder();
@@ -60,10 +66,27 @@ call stack, but we can't do that here.
 
 ## Run Types
 
-As in, these relate to runs or sequences of items.
+As in, these relate to runs or sequences of items. We don't typically control
+whether immutable slices of immutable lists are full copies or not, so make a
+custom type where we know we aren't making copies.
 
-    class RunBeginNPower {
-      //
+    class Run<T> {
+      public items: Listed<T>;
+      public begin: Int = 0;
+      public end: Int = items.length;
+    }
+
+    class RunPower {
+      // public items: Listed<T>;
+      public begin: Int = 0;
+      public end: Int = 0;
+      public power: Int = 0;
+    }
+
+    class RunBeginPower {
+      // public items: Listed<T>;
+      public begin: Int = 0;
+      public power: Int = 0;
     }
 
 ## Support
@@ -93,13 +116,11 @@ TODO Faster int log2 calculations!
 
 ## Tests
 
-    test("sort") {
+    test("sort") { (test);;
       let ints = [4, 5, 1, 2, 3].toListBuilder();
       let sorted = [1, 2, 3, 4, 5];
       new Powersort(fn (a: Int, b: Int) { a - b }).sort(ints);
-      for (var i = 0; i < ints.length; i += 1) {
-        assert(ints[i] == sorted[i]);
-      }
+      assertIntsEqual(test, ints, sorted);
     }
 
 [powersort]: https://github.com/sebawild/powersort/blob/48e31e909280ca43bb2c33dd3df9922b0a0f3f84/src/sorts/powersort.h
