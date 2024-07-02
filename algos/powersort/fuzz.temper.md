@@ -1,0 +1,51 @@
+TODO Fuzz testing
+
+## Simple PRNG
+
+We need some kind of interesting data for fuzz testing, so here's some pseudo
+random number generation.
+
+    class Random {
+      public var seed: Int = 7331;
+
+Pretend we can get at least 32-bit signed ints, even though we're still not sure
+we can promise that for all backends.
+
+      public next(): Int {
+        let a = 1_664_525;
+        let c = 1_013_904_223;
+
+Anding bits here ought to prevent negatives if 32 bits.
+
+        seed = (a * seed + c) & randomMod;
+        if (seed == randomMod) {
+
+Rejection sampling at border. Probably something smarter to do but meh.
+
+          next()
+        } else {
+          seed
+        }
+        return seed;
+      }
+
+Int in the range 0..&lt;end.
+
+      public nextInt(end: Int): Int {
+        next() % end
+      }
+    }
+
+    let randomMod = 0x7FFF_FFFF;
+
+    test("random") { (test);;
+      let random = new Random();
+      let ints = new ListBuilder<Int>();
+      for (var i = 0; i < 5; i += 1) {
+        ints.add(random.nextInt(100));
+      }
+
+If we get enough bits, these ought to be consistent.
+
+      assertIntsEqual(test, ints.toList(), [10, 77, 24, 83, 2]);
+    }
