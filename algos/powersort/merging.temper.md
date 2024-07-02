@@ -1,3 +1,18 @@
+## Copy
+
+TODO Builtin copy?
+
+    let copy<T>(
+      from: ListBuilder<T>, begin: Int, end: Int, to: ListBuilder<T>
+    ): Void {
+      // TODO Assert size before starting?
+      for (var i = begin; i < end; i += 1) {
+        to[i - begin] = from[i];
+      }
+    }
+
+## Extend and Reverse Run
+
     let extendAndReverseRunEnd<T>(
       items: ListBuilder<T>, begin: Int, end: Int, compare: fn (T, T): Int
     ): Int {
@@ -10,6 +25,52 @@
         prefixEnd
       } else {
         weaklyIncreasingPrefixEnd(items, begin, end, compare)
+      }
+    }
+
+## Merge
+
+This is the default merge in the reference.
+
+Merges runs A[l..m) and A[m..r) in-place into A[l..r) by copying both to buffer
+B and merging back into A. B must have space at least r-l.
+
+    let mergeRunsBasic<T>(
+      items: ListBuilder<T>,
+      l: Int,
+      m: Int,
+      r: Int,
+      buffer: ListBuilder<T>,
+      compare: fn (T, T): Int,
+    ): Void {
+      let n1 = m - l;
+      let n2 = r - m;
+      copy(items, l, r, buffer);
+      var c1 = 0;
+      let e1 = n1;
+      var c2 = e1;
+      let e2 = e1 + n2;
+      var o = l;
+
+Interleave based on compare ordering.
+
+      while (c1 < e1 && c2 < e2) {
+        items[o++] = if (compare(buffer[c1], buffer[c2]) <= 0) {
+          // Post increment is much simpler in this case.
+          buffer[c1++]
+        } else {
+          buffer[c2++]
+        };
+      }
+
+Copy over remaining items. Only one of the two has any left, but it's simpler
+just to make a loop of both.
+
+      while (c1 < e1) {
+        items[o++] = buffer[c1++];
+      }
+      while (c2 < e2) {
+        items[o++] = buffer[c2++];
       }
     }
 

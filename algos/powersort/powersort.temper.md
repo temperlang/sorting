@@ -77,7 +77,9 @@ Invariant: Powers on stack must be increasing from bottom to top.
           while (stack[top].power > runA.power) {
             let topRun = stack[top];
             top -= 1;
-            // merge_runs<mergingMethod>(top_run.begin, runA.begin, runA.end, _buffer.begin());
+            mergeRunsBasic(
+              items, topRun.begin, runA.begin, runA.end, buffer, compare
+            );
             runA.begin = topRun.begin;
           }
 
@@ -97,7 +99,7 @@ TODO Value structs in Temper.
         while (top > 0) {
           let topRun = stack[top];
           top -= 1;
-          // merge_runs<mergingMethod>(top_run.begin, runA.begin, end, _buffer.begin());
+          mergeRunsBasic(items, topRun.begin, runA.begin, end, buffer, compare);
           runA.begin = topRun.begin;
         }
       }
