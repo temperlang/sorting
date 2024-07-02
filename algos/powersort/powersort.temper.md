@@ -145,13 +145,21 @@ custom type where we know we aren't making copies.
     interface Runny {
       public get begin(): Int;
       public get end(): Int;
-      public set end(value: Int): Void;
+
+Java needs return type of `Int` on this.
+
+TODO Change Java to return `void` for setters.
+
+      public set end(value: Int): Int;
       public get length(): Int { end - begin + 0 }
     }
 
     class Run extends Runny {
       // public items: Listed<T>;
       public begin: Int = 0;
+
+TODO Lua needs the word `end` escaped.
+
       public var end: Int = 0; // items.length;
     }
 
@@ -195,10 +203,21 @@ TODO Faster int log2 calculations!
 
 ## Tests
 
+Java fails to infer `T` for the constructor call, but it can infer on this
+separate function.
+
+TODO Can we always apply manual type arguments for constructor calls in Java?
+
+    let sortWith<T>(
+      compare: fn (T, T): Int, minRunLength: Int = 24
+    ): Powersort<T> {
+      new Powersort(compare, minRunLength)
+    }
+
     test("sort") { (test);;
       let ints = [4, 5, 1, 2, 3].toListBuilder();
       let sorted = [1, 2, 3, 4, 5];
-      new Powersort(
+      sortWith(
         compare = fn (a: Int, b: Int) { a - b },
 
 Keep `minRunLength` short for testing so we don't `insertionSort` everything.
