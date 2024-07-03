@@ -11,7 +11,7 @@ If you just want simple stable sorting, using this.
     export let powersort<T>(
       items: ListBuilder<T>, compare: fn (T, T): Int
     ): Void {
-      powersorter(compare).sort(items)
+      new Powersorter(compare).sort(items)
     }
 
 ## Class
@@ -225,16 +225,10 @@ separate function.
 
 TODO Can we always apply manual type arguments for constructor calls in Java?
 
-    export let powersorter<T>(
-      compare: fn (T, T): Int, minRunLength: Int = 24
-    ): Powersorter<T> {
-      new Powersorter(compare, minRunLength)
-    }
-
     test("sort") { (test);;
       let ints = [4, 5, 1, 2, 3].toListBuilder();
       let sorted = [1, 2, 3, 4, 5];
-      powersorter(
+      new Powersorter(
         compare = fn (a: Int, b: Int) { a - b },
 
 Keep `minRunLength` short for testing so we don't `insertionSort` everything.
