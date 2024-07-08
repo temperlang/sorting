@@ -165,7 +165,7 @@ custom type where we know we aren't making copies.
 
 Java needs return type of `Int` on this.
 
-TODO Change Java to return `void` for setters.
+TODO Change our processing to return `void` for setters.
 
       public set end(value: Int): Int;
       public get length(): Int { end - begin + 0 }
@@ -174,9 +174,6 @@ TODO Change Java to return `void` for setters.
     class Run extends Runny {
       // public items: Listed<T>;
       public begin: Int = 0;
-
-TODO Lua needs the word `end` escaped.
-
       public var end: Int = 0; // items.length;
     }
 
