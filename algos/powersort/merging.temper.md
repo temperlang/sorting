@@ -3,12 +3,36 @@
 TODO Builtin copy?
 
     let copy<T>(
-      from: ListBuilder<T>, begin: Int, end: Int, to: ListBuilder<T>
+      from: Listed<T>, begin: Int, end: Int, to: ListBuilder<T>
     ): Void {
       // TODO Assert size before starting?
       for (var i = begin; i < end; i += 1) {
         to[i - begin] = from[i];
       }
+    }
+
+    test("copy") { (test);;
+      let random = new Random();
+
+Make a random list and also a list of zeros with matching space available.
+
+      let from = random.nextInts(100, 100);
+      let to = new ListBuilder<Int>();
+      fill(to, from.length, 0);
+
+Copy a subrange.
+
+      let begin = 10;
+      let end = 20;
+      copy(from, begin, end, to);
+
+Make sure the copy matches and also that we don't just have zeros still. Zeros
+might mean that we copied the wrong direction or something.
+
+      assertIntsEqual(test, from.slice(begin, end), to.slice(0, end - begin));
+      assert(
+        !to.reduceFrom(true) { (all: Boolean, i): Boolean;; all && i == 0 }
+      );
     }
 
 ## Extend and Reverse Run
@@ -71,6 +95,52 @@ just to make a loop of both.
       while (i2 < end2) {
         items[out++] = buffer[i2++];
       }
+    }
+
+    test("merge few") { (test);;
+      let ints = [3, 3, 5, 1, 4].toListBuilder();
+      let buffer = new ListBuilder<Int>();
+      fill(buffer, ints.length, 0);
+      mergeRunsBasic(ints, 0, 3, ints.length, buffer, compareInts);
+      assertIntsEqual(test, ints, [1, 3, 3, 4, 5]);
+    }
+
+    test("merge many") { (test);;
+      testMergeMany(test, 0, 0);
+      testMergeMany(test, 20, 10);
+    }
+
+### Helper for Merge Sort Testing
+
+    let testMergeMany(test: Test, prefixLength: Int, suffixLength: Int): Void {
+
+Make random sorted runs.
+
+      let random = new Random();
+      let a = random.nextInts(50, 100).toListBuilder();
+      let b = random.nextInts(20, 100).toListBuilder();
+      insertionSort(a, 0, a.length, 0, compareInts);
+      insertionSort(b, 0, b.length, 0, compareInts);
+
+Put them in one list with unsorted prefix and suffix.
+
+      let ints = new ListBuilder<Int>();
+      let runsBegin = prefixLength;
+      ints.addAll(random.nextInts(runsBegin, 100));
+      ints.addAll(a);
+      let runsMid = ints.length;
+      ints.addAll(b);
+      let runsEnd = ints.length;
+      ints.addAll(random.nextInts(suffixLength, 100));
+      assert(runsMid - runsBegin == a.length);
+      assert(runsEnd - runsBegin == a.length + b.length);
+
+Merge together.
+
+      let buffer = new ListBuilder<Int>();
+      fill(buffer, ints.length, 0);
+      mergeRunsBasic(ints, runsBegin, runsMid, runsEnd, buffer, compareInts);
+      assertSorted(test, ints.slice(runsBegin, runsEnd), compareInts);
     }
 
 ## Reverse
