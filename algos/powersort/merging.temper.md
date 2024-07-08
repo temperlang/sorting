@@ -37,6 +37,9 @@ might mean that we copied the wrong direction or something.
 
 ## Extend and Reverse Run
 
+Figure out if we can easily extract an already sorted prefix, even if we need to
+reverse it in place.
+
     let extendAndReverseRunEnd<T>(
       items: ListBuilder<T>, begin: Int, end: Int, compare: fn (T, T): Int
     ): Int {
@@ -50,6 +53,59 @@ might mean that we copied the wrong direction or something.
       } else {
         weaklyIncreasingPrefixEnd(items, begin, end, compare)
       }
+    }
+
+Decreasing prefix is strict, presumably because we need to be stable, so we
+don't want to change order for equal things. Merge will sort later, I reckon.
+
+    test("extend decreasing prefix") { (test);;
+      let ints = [5, 3, 2, 2, 4, 7, 6].toListBuilder();
+      let check(prefixLength: Int, suffixLength: Int): Void {
+        testAffixedInts(test, ints, prefixLength, suffixLength) { (full);;
+          let intsEnd = prefixLength + ints.length;
+          let end = extendAndReverseRunEnd(
+            full, prefixLength, intsEnd, compareInts
+          );
+          assert(end - prefixLength == 3);
+          let slice = full.slice(prefixLength, intsEnd);
+          assertIntsEqual(test, slice, [2, 3, 5, 2, 4, 7, 6]);
+        }
+      }
+      check(0, 0);
+      check(5, 10);
+    }
+
+Increasing prefix is weak, presumably because we aren't changing order.
+
+    test("extend increasing prefix") { (test);;
+      let ints = [2, 2, 3, 5, 4, 7, 6];
+      let check(prefixLength: Int, suffixLength: Int): Void {
+        testAffixedInts(test, ints, prefixLength, suffixLength) { (full);;
+          let intsEnd = prefixLength + ints.length;
+          let end = extendAndReverseRunEnd(
+            full, prefixLength, intsEnd, compareInts
+          );
+          assert(end - prefixLength == 4);
+          assertIntsEqual(test, full.slice(prefixLength, intsEnd), ints);
+        }
+      }
+      check(0, 0);
+      check(5, 10);
+    }
+
+    let testAffixedInts(
+      test: Test,
+      ints: Listed<Int>,
+      prefixLength: Int,
+      suffixLength: Int,
+      check: fn (ListBuilder<Int>): Void,
+    ): Void {
+      let random = new Random();
+      let full = new ListBuilder<Int>();
+      full.addAll(random.nextInts(prefixLength, 100));
+      full.addAll(ints);
+      full.addAll(random.nextInts(suffixLength, 100));
+      check(full);
     }
 
 ## Merge
