@@ -39,7 +39,8 @@ reference implementation, powersort needs more.
 
       public sort(items: ListBuilder<T>): Void {
 
-Just short circuit if we have a short list.
+Just short circuit if we have a short list. Run prefix extension also has
+similar short circuiting.
 
         if (items.length < 2) {
           return;
@@ -68,16 +69,22 @@ Meanwhile, code comments also say:
         let maxStackHeight = floorLog2(length) + 1;
 
 And in the reference implementation, they can allocate the stack array on the
-call stack, but we can't do that here.
+call stack, but we can't do that here. But do make separate int arrays in hope
+that's more efficient for more backends.
 
-        let stack = new ListBuilder<RunBeginPower>();
-        fill(stack, maxStackHeight, new RunBeginPower());
+        let beginStack = new ListBuilder<Int>();
+        let powerStack = new ListBuilder<Int>();
+        fill(beginStack, maxStackHeight, 0);
+        fill(powerStack, maxStackHeight, 0);
         var top = 0;
 
         let runA = new RunPower(
           begin, extendAndReverseRunEnd(items, begin, end, compare), 0
         );
         extendToMinRunLength(items, end, runA);
+
+TODO Pull runB construction out of loop?
+
         while (runA.end < end) {
           let runB = new Run(
             runA.end, extendAndReverseRunEnd(items, runA.end, end, compare)
@@ -89,13 +96,13 @@ call stack, but we can't do that here.
 
 Invariant: Powers on stack must be increasing from bottom to top.
 
-          while (stack[top].power > runA.power) {
-            let topRun = stack[top];
+          while (powerStack[top] > runA.power) {
+            let topBegin = beginStack[top];
             top -= 1;
             mergeRunsBasic(
-              items, topRun.begin, runA.begin, runA.end, buffer, compare
+              items, topBegin, runA.begin, runA.end, buffer, compare
             );
-            runA.begin = topRun.begin;
+            runA.begin = topBegin;
           }
 
 Store updated runA to be merged with runB at power k. And reuse objects to avoid
@@ -104,18 +111,18 @@ excess garbage.
 TODO Value structs in Temper.
 
           top += 1;
-          stack[top].begin = runA.begin;
-          stack[top].power = runA.power;
+          beginStack[top] = runA.begin;
+          powerStack[top] = runA.power;
           runA.begin = runB.begin;
           runA.end = runB.end;
           runA.power = 0;
         }
         // assert(runA.end == end);
         while (top > 0) {
-          let topRun = stack[top];
+          let topBegin = beginStack[top];
           top -= 1;
-          mergeRunsBasic(items, topRun.begin, runA.begin, end, buffer, compare);
-          runA.begin = topRun.begin;
+          mergeRunsBasic(items, topBegin, runA.begin, end, buffer, compare);
+          runA.begin = topBegin;
         }
       }
 
@@ -128,29 +135,31 @@ TODO Value structs in Temper.
         }
       }
 
+      let buffer: ListBuilder<T> = new ListBuilder();
+    }
+
+## Node Power
+
 The reference has multiple implementations for node power where the default has
 no looping at all, but it wouldn't be easy to implement in Temper today. This
 "div" version seems the most straightforward. I'm not sure if it effects the big
 O.
 
-      nodePowerDiv(
-        begin: Int, end: Int, beginA: Int, beginB: Int, endB: Int
-      ): Int {
-        let twoN = 2 * (end - begin);
-        let n1 = beginB - beginA;
-        let n2 = endB - beginB;
-        var a = 2 * beginA + n1 - 2 * begin;
-        var b = 2 * beginB + n2 - 2 * begin;
-        var k = 0;
-        while (b - a <= twoN && a / twoN == b / twoN) {
-          a *= 2;
-          b *= 2;
-          k += 1;
-        }
-        k
+    let nodePowerDiv(
+      begin: Int, end: Int, beginA: Int, beginB: Int, endB: Int
+    ): Int {
+      let twoN = 2 * (end - begin);
+      let n1 = beginB - beginA;
+      let n2 = endB - beginB;
+      var a = 2 * beginA + n1 - 2 * begin;
+      var b = 2 * beginB + n2 - 2 * begin;
+      var k = 0;
+      while (b - a <= twoN && a / twoN == b / twoN) {
+        a *= 2;
+        b *= 2;
+        k += 1;
       }
-
-      let buffer: ListBuilder<T> = new ListBuilder();
+      k
     }
 
 ## Run Types
@@ -213,6 +222,14 @@ TODO Faster int log2 calculations!
 
     let floorLog2(n: Int): Int {
       (n.toFloat64().log() / log2).floor().toInt()
+    }
+
+    test("floor log2") {
+      assert(floorLog2(1) == 0);
+      assert(floorLog2(2) == 1);
+      assert(floorLog2(3) == 1);
+      assert(floorLog2((2.0 ** 24.0 - 1.0).toIntUnsafe()) == 23);
+      assert(floorLog2((2.0 ** 24.0).toIntUnsafe()) == 24);
     }
 
 ## Tests

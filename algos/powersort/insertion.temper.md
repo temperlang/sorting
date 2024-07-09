@@ -53,13 +53,23 @@ Then include additional random values.
     let assertSorted<T>(
       test: Test, items: Listed<T>, compare: fn (T, T): Int
     ): Void {
+      assert(countUnordered(items, compare) == 0);
+    }
+
+    let assertUnsorted<T>(
+      test: Test, items: Listed<T>, compare: fn (T, T): Int
+    ): Void {
+      assert(countUnordered(items, compare) > 0);
+    }
+
+    let compareInts(a: Int, b: Int): Int { a - b }
+
+    let countUnordered<T>(items: Listed<T>, compare: fn (T, T): Int): Int {
       var unordered = 0;
       for (var i = 1; i < items.length; i += 1) {
         if (compare(items[i - 1], items[i]) > 0) {
           unordered += 1;
         }
       }
-      assert(unordered == 0);
+      unordered
     }
-
-    let compareInts(a: Int, b: Int): Int { a - b }
