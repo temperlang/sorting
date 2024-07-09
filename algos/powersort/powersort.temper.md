@@ -82,13 +82,10 @@ that's more efficient for more backends.
           begin, extendAndReverseRunEnd(items, begin, end, compare), 0
         );
         extendToMinRunLength(items, end, runA);
-
-TODO Pull runB construction out of loop?
-
+        let runB = new Run();
         while (runA.end < end) {
-          let runB = new Run(
-            runA.end, extendAndReverseRunEnd(items, runA.end, end, compare)
-          );
+          runB.begin = runA.end;
+          runB.end = extendAndReverseRunEnd(items, runA.end, end, compare);
           extendToMinRunLength(items, end, runB);
           runA.power = nodePowerDiv(
             0, length, runA.begin - begin, runB.begin - begin, runB.end - begin
@@ -108,7 +105,7 @@ Invariant: Powers on stack must be increasing from bottom to top.
 Store updated runA to be merged with runB at power k. And reuse objects to avoid
 excess garbage.
 
-TODO Value structs in Temper.
+TODO Value structs in Temper could simplify the stack.
 
           top += 1;
           beginStack[top] = runA.begin;
@@ -182,7 +179,7 @@ TODO Change our processing to return `void` for setters.
 
     class Run extends Runny {
       // public items: Listed<T>;
-      public begin: Int = 0;
+      public var begin: Int = 0;
       public var end: Int = 0; // items.length;
     }
 
