@@ -231,11 +231,6 @@ TODO Faster int log2 calculations!
 
 ## Tests
 
-Java fails to infer `T` for the constructor call, but it can infer on this
-separate function.
-
-TODO Can we always apply manual type arguments for constructor calls in Java?
-
     test("sort") { (test);;
       let ints = [4, 5, 1, 2, 3].toListBuilder();
       let sorted = [1, 2, 3, 4, 5];
