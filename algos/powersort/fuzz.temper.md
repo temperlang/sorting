@@ -28,6 +28,11 @@ First check that the categories are sorted but that the ids as a whole aren't.
 Within each group, check for sorted ids.
 
       for (var category = 0; category < categoryCount; category += 1) {
+
+Copy to non-var, so Java doesn't have trouble with non-final access from
+closure. TODO Fix be-java.
+
+        let category = category;
         let group = entries.filter { (a);; a.category == category };
         assertSorted(test, group, compareId);
       }

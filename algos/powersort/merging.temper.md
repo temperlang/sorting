@@ -30,9 +30,15 @@ Make sure the copy matches and also that we don't just have zeros still. Zeros
 might mean that we copied the wrong direction or something.
 
       assertIntsEqual(test, from.slice(begin, end), to.slice(0, end - begin));
-      assert(
-        !to.reduceFrom(true) { (all: Boolean, i): Boolean;; all && i == 0 }
-      );
+
+And use a loop for this instead of reduce so be-java doesn't need to cope with
+mixed up SAM types. TODO Fix be-java.
+
+      var toAllZero = true;
+      for (var i = 0; i < to.length; i += 1) {
+        toAllZero = toAllZero && to[i] == 0;
+      }
+      assert(!toAllZero);
     }
 
 ## Extend and Reverse Run
@@ -158,7 +164,10 @@ just to make a loop of both.
       let buffer = new ListBuilder<Int>();
       fill(buffer, ints.length, 0);
       mergeRunsBasic(ints, 0, 3, ints.length, buffer, compareInts);
-      assertIntsEqual(test, ints, [1, 3, 3, 4, 5]);
+
+Conver to list because be-csharp IList vs IReadOnlyList. TODO Fix be-csharp.
+
+      assertIntsEqual(test, ints.toList(), [1, 3, 3, 4, 5]);
     }
 
     test("merge many") { (test);;
