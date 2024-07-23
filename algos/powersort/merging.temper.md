@@ -34,10 +34,9 @@ might mean that we copied the wrong direction or something.
 And use a loop for this instead of reduce so be-java doesn't need to cope with
 mixed up SAM types. TODO Fix be-java.
 
-      var toAllZero = true;
-      for (var i = 0; i < to.length; i += 1) {
-        toAllZero = toAllZero && to[i] == 0;
-      }
+      let toAllZero = to.reduceFrom(true) { (all: Boolean, val): Boolean;;
+        all && val == 0
+      };
       assert(!toAllZero);
     }
 
